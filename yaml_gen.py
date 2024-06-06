@@ -1,6 +1,6 @@
 import yaml
 
-setup = {'data_options': {'CGM': 3, 'CHO': 0, 'Insulin': 0}, 
+setup = {'data_options': {'feature': 3, 'CGM': 3, 'CHO': 0, 'Insulin': 0}, 
          'output_window' : 6,
          'stride' : 1, 
          'layers': 1,
@@ -13,5 +13,5 @@ setup = {'data_options': {'CGM': 3, 'CHO': 0, 'Insulin': 0},
          #'decay' : 
          }
 
-f = open("Settings.yaml", 'w')
+f = open("config.yaml", 'w')
 yaml.dump(setup, f, allow_unicode=True)

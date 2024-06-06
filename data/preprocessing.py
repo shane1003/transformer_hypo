@@ -16,27 +16,26 @@ def data_preprocessing(data, options):
     """
 
     _X = []
+    CGM, scaler = CGM_preprocessing(data['CGM'].to_numpy().reshape(-1, 1), options['CGM'])
+    df_CGM = pd.DataFrame(CGM)
+    data['CGM'] = df_CGM[0]
 
     X = data_drop(data)
-
     #using all (CGM, CHO, Insulin)
-    if options['CGM'] != 3:
+    if options['feature'] != 1:
         for x in X:
             x = np.array(x, dtype=np.float64) #full for main X[data_idx][0,1,2] == [0: CGM, 1: CHO, 2: Insulin]
-
-            scaler, x[:, 0] = CGM_preprocessing(x[:,0], options['CGM'])
-            x[:, 1] = CHO_preprocessing(x[:,1], options['CHO'])
-            x[:, 2] = INS_preprocessing(x[:,2], options['Insulin'])
+            x[:, 1] = CHO_preprocessing(x[:, 1], options['CHO'])
+            x[:, 2] = INS_preprocessing(x[:, 2], options['Insulin'])
 
             _X.append(x)
     #using only CGM
     else:
         for x in X:
             x = np.array(x, dtype=np.float64)
-            scaler, x[:, 0] = CGM_preprocessing(x[:,0], options['CGM'])
             _X.append(x[:, 0])
 
-    return scaler, _X
+    return _X, scaler
 
 def CGM_preprocessing(data, option):
     """
@@ -52,22 +51,21 @@ def CGM_preprocessing(data, option):
     Returns:
         scaler and scaled data(pandas)
     """
-    if option == 0 or 3:
-        return None, data
+    if option == 0:
+        return data, None
     
     elif option == 1:
         scaler = MinMaxScaler(feature_range=(0,1))
         data = scaler.fit_transform(data)
+        return data, scaler
 
     elif option == 2:
         scaler = StandardScaler()
         data = scaler.fit_transform(data)
+        return data, scaler
 
     else:
         print("Error : Unexpected Option!")
-
-    
-    return data, scaler
 
 def CHO_preprocessing(data, option):
     #print(data)
@@ -88,7 +86,7 @@ def CHO_preprocessing(data, option):
     if option == 0:
         data[np.where(np.isnan(data))[:]] = 0
     elif option == 1:
-
+        data[np.where(np.isnan(data))[:]] = 0
         def CHO_intake_index(CHOs):
             """
             get CHO intake index
@@ -123,7 +121,7 @@ def CHO_preprocessing(data, option):
                 R_a_t : Glucose absortion rate
             """
             C_bio = 0.8
-            t_max_G = 50
+            t_max_G = 60
                 
             R_a_t = ( C_in * C_bio * t * np.exp( (-1)*t / t_max_G ) ) / ( t_max_G * t_max_G )
                 
@@ -142,7 +140,6 @@ def CHO_preprocessing(data, option):
                 Absortion_amount : CHO Absortion amount for 5min(per min)
             """ 
 
-                        
             if (t - C_index) == 0:
                 return 0
 
@@ -158,7 +155,11 @@ def CHO_preprocessing(data, option):
             """
 
             CHO_gen = []
-            CHO_intake_indices = CHO_intake_index(CHOs)
+            CHO_intake_indices = CHO_intake_index(data)
+            #print(CHO_intake_indices)
+
+            for i in range(0, CHO_intake_indices[0]): #앞에 채워있지 않은 CHO 0으로 기입
+                CHO_gen.append(0)
 
             for i, intake_idx in enumerate(CHO_intake_indices[:-1]):
                 for j in range(intake_idx, CHO_intake_indices[i + 1]):
@@ -166,9 +167,9 @@ def CHO_preprocessing(data, option):
             
             return CHO_gen
 
-        print(CHO_generated(data))
-
-        return(CHO_generated(data))
+        #print(CHO_generated(data))
+        generated_CHO = CHO_generated(data)
+        return generated_CHO
         
     else:
         print("Error : Unexpected Option!")

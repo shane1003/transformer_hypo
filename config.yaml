@@ -2,14 +2,16 @@
 SEED: 1
 batch: 128
 data_options:
-  CGM: 3
-  CHO: 0
-  Insulin: 0
+  feature: 3
+  CGM: 0
+  CHO: 1
+  Insulin: 1
 dropout: 0.3
 epoch: 2000
-input_size: 3
-learning_rate: 0.0001
+feature: 3
+learning_rate: 0.001
 dim: 512
 num_layers: 1
+input_window: 30
 output_window: 6
 stride: 1

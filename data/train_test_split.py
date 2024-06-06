@@ -15,6 +15,7 @@ def X_Y_from_data(data):
 
     X = []
     Y = []
+
     for datum in data:
         X.append(datum[:-1])
         try:
@@ -24,7 +25,7 @@ def X_Y_from_data(data):
 
     return X, Y
 
-def X_Y2train_test(X, Y, output_window = 6, input_size = 3, stride = 1):
+def X_Y2train_test(X, Y, feature, input_window, output_window = 6, stride = 1):
     """
     make X and Y to X_train, Y_train, X_test, Y_test
     
@@ -41,35 +42,38 @@ def X_Y2train_test(X, Y, output_window = 6, input_size = 3, stride = 1):
         X_test : test input data
         Y_test : test output data
     """
-    
-    X_train = np.empty((1, output_window, input_size))
+
+    if feature == 3:
+        X_train = np.empty((1, input_window + output_window, feature))
+    elif feature == 1:
+        X_train = np.empty((1, input_window + output_window))
     Y_train = np.empty((1, output_window))
 
     for i in range(0, len(X)-1): 
         win_X, win_Y = data2Window(X = X[i],
                                    Y = Y[i],
+                                   input_window = input_window,
                                    output_window = output_window,
                                    stride = stride)
-
-        if input_size == 1:
-            win_X = win_X.reshape(-1, 6, 1)
-
         try:
             X_train = np.vstack((X_train, win_X))
             Y_train = np.vstack((Y_train, win_Y))
-            
         except:
             continue
 
     X_test, Y_test = data2Window(X = X[-1],
                                  Y = Y[-1],
+                                 input_window = input_window,
                                  output_window = output_window,
                                  stride = stride)
-    
-    
+
+    if feature == 1:
+        X_train = np.expand_dims(X_train, axis=2)
+        X_test = np.expand_dims(X_test, axis=2)
+
     return X_train[1:], Y_train[1:], X_test, Y_test
 
-def data2Window(X, Y, output_window = 6, stride = 1):
+def data2Window(X, Y, input_window, output_window = 6, stride = 1):
     """
     change the full train and test data to window dataset for seq2seq
     
@@ -90,13 +94,13 @@ def data2Window(X, Y, output_window = 6, stride = 1):
     #number of data
     L = len(X)
     #number of samples by using window with stride.
-    num_samples = (L - output_window) // stride + 1
+    num_samples = (L - input_window - output_window) // stride + 1
     
     #input & output : shape = (sizeof window, number of samples)
     idx = 0
     for i in range(num_samples):
-        win_X.append(np.array(X[idx:idx+output_window])) #t ~ t + input_window + output_window
-        win_Y.append(np.array(Y[idx:idx+output_window])) #t+input_window ~ t+input_window+output_window use for teacher forcing
+        win_X.append(np.array(X[idx:idx+input_window+output_window])) #t ~ t + input_window + output_window
+        win_Y.append(np.array(Y[idx+input_window:idx+input_window+output_window])) #t+input_window ~ t+input_window+output_window use for teacher forcing
         idx = idx + stride
         
     return np.array(win_X), np.array(win_Y)
