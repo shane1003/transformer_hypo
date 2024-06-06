@@ -93,10 +93,10 @@ def result_jpg(prediction, Y_test, PATH):
     
 def save_yaml_and_error(yaml_path, save_path, date, flag = 1):
     if flag == 2:
-        source = yaml_path + "Settings2.yaml"
+        source = yaml_path + "config2.yaml"
     else:
-        source = yaml_path + "Settings.yaml"
-    destination = save_path + "/Settings.yaml"
+        source = yaml_path + "config.yaml"
+    destination = save_path + "/config.yaml"
     
     shutil.copyfile(source, destination)
 

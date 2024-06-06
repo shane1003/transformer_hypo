@@ -2,13 +2,12 @@
 SEED: 1
 batch: 128
 data_options:
-  feature: 3
+  feature: 1
   CGM: 0
   CHO: 1
   Insulin: 1
 dropout: 0.3
-epoch: 2000
-feature: 3
+epoch: 1
 learning_rate: 0.001
 dim: 512
 num_layers: 1
